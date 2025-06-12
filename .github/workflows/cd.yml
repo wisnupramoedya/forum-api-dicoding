@@ -24,6 +24,3 @@ jobs:
             npm install
             npm run migrate up
             pm2 restart forum-api
-
-            # Clean up SSH agent
-            ssh-agent -k

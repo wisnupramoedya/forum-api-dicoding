@@ -5,6 +5,7 @@
 # Secrets
 .env
 .env.test
+forum-api-webserver.pem
 
 # Modules
 node_modules

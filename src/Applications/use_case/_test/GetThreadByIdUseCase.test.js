@@ -5,6 +5,7 @@ const CommentRepository = require('../../../Domains/comments/CommentRepository')
 const CommentDataBuilder = require('./fixtures/CommentDataBuilder');
 const ReplyRepository = require('../../../Domains/replies/ReplyRepository');
 const ReplyDataBuilder = require('./fixtures/ReplyDataBuilder');
+const LikeRepository = require('../../../Domains/likes/LikeRepository');
 
 describe('GetThreadByIdUseCase', () => {
   it('should orchestrating the get thread by id action correctly', async () => {
@@ -72,6 +73,7 @@ describe('GetThreadByIdUseCase', () => {
       comments: [
         {
           ...firstComment,
+          likeCount: 2,
           replies: [
             firstReply,
             { ...secondReply, content: '**balasan telah dihapus**' },
@@ -79,6 +81,7 @@ describe('GetThreadByIdUseCase', () => {
         },
         {
           ...secondComment,
+          likeCount: 0,
           content: '**komentar telah dihapus**',
           replies: [],
         },
@@ -88,40 +91,49 @@ describe('GetThreadByIdUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
     mockThreadRepository.getThreadById = jest.fn(() => Promise.resolve(thread));
     const mockCommentRepository = new CommentRepository();
-    mockCommentRepository.getCommentsByThreadId = jest.fn(() => Promise.resolve([
-      {
-        ...firstComment,
-        owner: firstOwner,
-        thread_id: firstThreadId,
-        is_delete: isDeletedFirstComment,
-      },
-      {
-        ...secondComment,
-        owner: secondOwner,
-        thread_id: secondThreadId,
-        is_delete: isDeletedSecondComment,
-      },
-    ]));
+    mockCommentRepository.getCommentsByThreadId = jest.fn(() =>
+      Promise.resolve([
+        {
+          ...firstComment,
+          owner: firstOwner,
+          thread_id: firstThreadId,
+          is_delete: isDeletedFirstComment,
+        },
+        {
+          ...secondComment,
+          owner: secondOwner,
+          thread_id: secondThreadId,
+          is_delete: isDeletedSecondComment,
+        },
+      ])
+    );
     const mockReplyRepository = new ReplyRepository();
-    mockReplyRepository.getRepliesByThreadId = jest.fn(() => Promise.resolve([
-      {
-        ...firstReply,
-        is_delete: isDeletedFirstReply,
-        owner: firstReplyOwner,
-        comment_id: firstCommentId,
-      },
-      {
-        ...secondReply,
-        is_delete: isDeletedSecondReply,
-        owner: secondReplyOwner,
-        comment_id: secondCommentId,
-      },
-    ]));
+    mockReplyRepository.getRepliesByThreadId = jest.fn(() =>
+      Promise.resolve([
+        {
+          ...firstReply,
+          is_delete: isDeletedFirstReply,
+          owner: firstReplyOwner,
+          comment_id: firstCommentId,
+        },
+        {
+          ...secondReply,
+          is_delete: isDeletedSecondReply,
+          owner: secondReplyOwner,
+          comment_id: secondCommentId,
+        },
+      ])
+    );
+    const mockLikeRepository = new LikeRepository();
+    mockLikeRepository.getCommentLikeCountByThreadId = jest.fn(() =>
+      Promise.resolve([{ comment_id: firstCommentId, like_count: 2 }])
+    );
 
     const getThreadByIdUseCase = new GetThreadByIdUseCase({
       threadRepository: mockThreadRepository,
       commentRepository: mockCommentRepository,
       replyRepository: mockReplyRepository,
+      likeRepository: mockLikeRepository,
     });
 
     // Action
@@ -131,13 +143,13 @@ describe('GetThreadByIdUseCase', () => {
     expect(result).toStrictEqual(expectedThread);
     expect(result.comments.length).toEqual(2);
     expect(mockThreadRepository.getThreadById).toHaveBeenCalledWith(
-      useCasePayload.threadId,
+      useCasePayload.threadId
     );
     expect(mockCommentRepository.getCommentsByThreadId).toHaveBeenCalledWith(
-      useCasePayload.threadId,
+      useCasePayload.threadId
     );
     expect(mockReplyRepository.getRepliesByThreadId).toHaveBeenCalledWith(
-      useCasePayload.threadId,
+      useCasePayload.threadId
     );
   });
 });

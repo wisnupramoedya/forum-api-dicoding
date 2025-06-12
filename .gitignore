@@ -1,0 +1,14 @@
+# Code Editor
+.vscode
+.idea
+
+# Secrets
+.env
+.env.test
+
+# Modules
+node_modules
+package-lock.json
+
+# Test and Coverage
+coverage
